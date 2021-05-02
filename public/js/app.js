@@ -99,7 +99,7 @@ window.addEventListener('load', () => {
     else return []
   }
 
-  // Handle Convert Button Click Event
+  // Handle Search Button Click Event
   const searchHandler = () => {
     if ($('.ui.form').form('is valid')) {
       // hide error message
@@ -214,7 +214,6 @@ window.addEventListener('load', () => {
       });
 
       const data = response.data;
-      //console.log(response);
       $('.ui.modal').remove();
       let html = movieModalTemplate(data);
       $('#modal').html(html);
@@ -239,7 +238,6 @@ window.addEventListener('load', () => {
       });
       window.creditsId = movieId;
       const data = response.data;
-      //console.log(response);
       $('.ui.modal').remove();
       let html = creditModalTemplate(data);
       $('#modal').html(html);
@@ -264,7 +262,6 @@ window.addEventListener('load', () => {
       });
 
       const data = response.data;
-      //console.log(response);
       $('.ui.modal').remove();
       let html = castDetailModalTemplate(data);
       $('#modal').html(html);
