@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const { getRates, getSymbols, getHistoricalRate } = require('./lib/fixer-service');
+const { getPopular, getSearch, getHistoricalRate } = require('./lib/fixer-service');
 const { convertCurrency } = require('./lib/free-currency-service');
 
 const app = express();
@@ -36,10 +36,10 @@ const errorHandler = (err, req, res) => {
   }
 };
 
-// Fetch Latest Currency Rates
-app.get('/api/rates', async (req, res) => {
+// Fetch Popular Movies
+app.get('/api/popular', async (req, res) => {
   try {
-    const data = await getRates();
+    const data = await getPopular();
     res.setHeader('Content-Type', 'application/json');
     res.send(data);
   } catch (error) {
@@ -47,10 +47,12 @@ app.get('/api/rates', async (req, res) => {
   }
 });
 
-// Fetch Symbols
-app.get('/api/symbols', async (req, res) => {
+// Fetch Search
+app.get('/api/search', async (req, res) => {
   try {
-    const data = await getSymbols();
+    let query = req.query.query;
+    let page = req.query.page;
+    const data = await getSearch(query, page);
     res.setHeader('Content-Type', 'application/json');
     res.send(data);
   } catch (error) {

@@ -1,160 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="scripts/semantic-ui-css/semantic.min.css">
-  <link rel="stylesheet" href="scripts/semantic-ui-calendar/dist/calendar.min.css">
-  <title>SPA Demo</title>
-</head>
-<body>
-  <div class="ui container">
-    <!-- Navigation Menu -->
-    <div class="ui four item inverted orange menu">
-      <div class="header item">
-        <i class="money bill alternate outline icon"></i>
-        IT 4403 Term Project
-      </div>
-      <a class="item" href="/">
-        Top Movies & Shows
-      </a>
-      <a class="item" href="/exchange">
-        Exchange Rates
-      </a>
-      <a class="item" href="/historical">
-        Historical Rates
-      </a>
-    </div>
-    <!-- Error Template -->
-    <script id="error-template" type="text/x-handlebars-template">
-      <div class="ui {{color}} inverted segment" style="height:250px;">
-        <br>
-        <h2 class="ui center aligned icon header">
-          <i class="exclamation triangle icon"></i>
-          <div class="content">
-            {{title}}
-            <div class="sub header">{{message}}</div>
-          </div>
-        </h2>
-      </div>
-    </script>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link rel="stylesheet" href="scripts/semantic-ui-css/semantic.min.css" />
+    <link
+      rel="stylesheet"
+      href="scripts/semantic-ui-calendar/dist/calendar.min.css"
+    />
+    <title>IT 4403 Term Project</title>
+  </head>
 
-    <!-- Currency Rates Template -->
-    <script id="rates-template" type="text/x-handlebars-template">
-      <h1 class="ui header">Top Movies & Shows</h1>
-      <hr>
-      <div class="ui loading basic segment">
-        <div class="ui horizontal list">
-          <div class="item">
-            <i class="calendar alternate outline icon"></i>
-            <div class="content">
-              <div class="ui sub header">Date</div>
-              <span>{{date}}</span>
-            </div>
-          </div>
-          <div class="item">
-            <i class="money bill alternate outline icon"></i>
-            <div class="content">
-              <div class="ui sub header">Base</div>
-              <span>{{base}}</span>
-            </div>
-          </div>
+  <body>
+    <div class="ui container">
+      <!-- Navigation Menu -->
+      <div class="ui four item inverted orange menu">
+        <div class="header item">
+          <i class="money bill alternate outline icon"></i>
+          IT 4403 Term Project
         </div>
-
-        <table class="ui celled striped selectable inverted table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Rate</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{#each rates}}
-            <tr>
-              <td>{{@key}}</td>
-              <td>{{this}}</td>
-            </tr>
-            {{/each}}
-          </tbody>
-        </table>
+        <a class="item" href="/"> Top Movies & Shows </a>
+        <a class="item" href="/search"> Movie Search </a>
+        <a class="item" href="/historical"> Historical Rates </a>
       </div>
-    </script>
-
-    <script id="exchange-template" type="text/x-handlebars-template">
-      <h1 class="ui header">Exchange Rate</h1>
-      <hr>
-      <div class="ui basic loading segment">
-        <form class="ui form">
-          <div class="three fields">
-            <div class="field">
-              <label>From</label>
-              <select class="ui dropdown" name="from" id="from">
-                <option value="">Select Currency</option>
-                {{#each symbols}}
-                <option value="{{@key}}">{{this}}</option>
-                {{/each}}
-              </select>
+      <!-- Error Template -->
+      <script id="error-template" type="text/x-handlebars-template">
+        <div class="ui {{color}} inverted segment" style="height:250px;">
+          <br />
+          <h2 class="ui center aligned icon header">
+            <i class="exclamation triangle icon"></i>
+            <div class="content">
+              {{title}}
+              <div class="sub header">
+                {{message}}
+              </div>
             </div>
-            <div class="field">
-              <label>To</label>
-              <select class="ui dropdown" name="to" id="to">
-                <option value="">Select Currency</option>
-                {{#each symbols}}
-                <option value="{{@key}}">{{this}}</option>
-                {{/each}}
-              </select>
-            </div>
-            <div class="field">
-              <label>Amount</label>
-              <input type="number" name="amount" id="amount" placeholder="Enter amount">
-            </div>
-          </div>
-          <div class="ui primary submit button">Convert</div>
-          <div class="ui error message"></div>
-        </form>
-        <br>
-        <div id="result-segment" class="ui center aligned segment">
-          <h2 id="result" class="ui header">
-            0.00
           </h2>
         </div>
-      </div>
-    </script>
+      </script>
 
-    <script id="historical-template" type="text/x-handlebars-template">
-      <h1 class="ui header">Historical Rates</h1>
-      <hr>
-      <form class="ui form">
-        <div class="field">
-          <label>Pick Date</label>
-          <div class="ui calendar" id="calendar">
-            <div class="ui input left icon">
-              <i class="calendar icon"></i>
-              <input type="text" placeholder="Date" id="date">
+      <!-- Popular Movies Template -->
+      <script id="popMovies-template" type="text/x-handlebars-template">
+        <h1 class="ui header centered">
+          Top Movies & Shows
+        </h1>
+        <hr />
+        <div class="ui loading basic segment">
+          <table class="ui celled striped selectable inverted table">
+            <thead>
+              <tr>
+                <th>
+                  <strong>
+                    Movie Title
+                  </strong>
+                </th>
+                <th>
+                  <strong>
+                    Rating
+                  </strong>
+                </th>
+                <th>
+                  <strong>
+                    Average Vote
+                  </strong>
+                </th>
+                <th>
+                  <strong>
+                    Vote Count
+                  </strong>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each results}}
+                <tr>
+                  <td>
+                    {{original_title}}
+                  </td>
+                  <td>
+                    {{popularity}}
+                  </td>
+                  <td>
+                    {{vote_average}}
+                  </td>
+                  <td>
+                    {{vote_count}}
+                  </td>
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+      </script>
+
+      <script id="segment-horizontal" type="text/x-handlebars-template">
+        {{#.}}
+        <div class="ui three column grid">
+          {{#.}}
+          <div class="column">
+          <div class="ui card">
+            <div class="content">
+              <div class="header">Cute Dog</div>
+              <div class="meta">2 days ago</div>
+              <div class="description">
+                <p>Cute dogs come in a variety of shapes and sizes. Some cute dogs are cute for their adorable faces, others for their tiny stature, and even others for their massive size.</p>
+                <p>Many people also have their own barometers for what makes a cute dog.</p>
+              </div>
+            </div>
+            <div class="extra content">
+              <i class="check icon"></i>
+              121 Votes
             </div>
           </div>
         </div>
-        <div class="ui primary submit button">Fetch Rates</div>
-        <div class="ui error message"></div>
-      </form>
+          {{/.}}
+        </div>
+        {{/.}}
+      </script>
 
-      <div class="ui basic segment">
-        <div id="historical-table"></div>
-      </div>
-    </script>
+      <script id="segment-vertical" type="text/x-handlebars-template">
+        <div class="ui segment">
+              {{#.}}
+              <div class="ui items">
+                <div class="item">
+                  <div class="image">
+                    <img src="/images/wireframe/image.png">
+                  </div>
+                  <div class="content">
+                    <a class="header">Header</a>
+                    <div class="meta">
+                      <span>Description</span>
+                    </div>
+                    <div class="description">
+                      <p></p>
+                    </div>
+                    <div class="extra">
+                      Additional Details
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <hr>
+              {{/.}}
+            </div>
+      </script>
 
-    <!-- Page content -->
-    <div id="app"></div>
+      <script id="search-template" type="text/x-handlebars-template">
+        <h1 class="ui header">
+          Movie Search
+        </h1>
+        <hr />
+        <div class="ui basic loading segment">
+          <form class="ui form">
+            <div class="one field">
+              <div class="field">
+                <label>
+                  Search For a Movie:
+                </label>
+                <div class="ui action input">
+                  <input
+                    name="search"
+                    id="search"
+                    type="text"
+                    placeholder="Search..."
+                  />
+                  <button id="searchBtn" class="ui button">
+                    Search
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button id="grid-view" class="ui left attached button active">
+              <i class="ellipsis horizontal icon"></i>
+              GRID
+            </button>
+            <button id="list-view" class="right attached ui button">
+              <i class="ellipsis vertical icon"></i>
+              LIST
+            </button>
+            <div class="ui error message"></div>
+          </form>
+          <br />
+          <div id="search-result"></div>
+        </div>
+      </script>
 
-    <!-- Scripts -->
-    <script src="scripts/jquery/dist/jquery.min.js"></script>
-    <script src="scripts/semantic-ui-css/semantic.min.js"></script>
-    <script src="scripts/semantic-ui-calendar/dist/calendar.min.js"></script>
-    <script src="scripts/axios/dist/axios.min.js"></script>
-    <script src="scripts/handlebars/dist/handlebars.min.js"></script>
-    <script src="scripts/vanilla-router/dist/vanilla-router.min.js"></script>
-    <script src="js/app.js"></script>
-  </div>
-</body>
+      <script id="historical-template" type="text/x-handlebars-template">
+        <h1 class="ui header">
+          Historical Rates
+        </h1>
+        <hr />
+        <form class="ui form">
+          <div class="field">
+            <label>
+              Pick Date
+            </label>
+            <div class="ui calendar" id="calendar">
+              <div class="ui input left icon">
+                <i class="calendar icon"></i>
+                <input type="text" placeholder="Date" id="date" />
+              </div>
+            </div>
+          </div>
+          <div class="ui primary submit button">
+            Fetch Rates
+          </div>
+          <div class="ui error message"></div>
+        </form>
+
+        <div class="ui basic segment">
+          <div id="historical-table"></div>
+        </div>
+      </script>
+
+      <!-- Page content -->
+      <div id="app"></div>
+
+      <!-- Scripts -->
+      <script src="scripts/jquery/dist/jquery.min.js"></script>
+      <script src="scripts/semantic-ui-css/semantic.min.js"></script>
+      <script src="scripts/semantic-ui-calendar/dist/calendar.min.js"></script>
+      <script src="scripts/axios/dist/axios.min.js"></script>
+      <script src="scripts/handlebars/dist/handlebars.min.js"></script>
+      <script src="scripts/vanilla-router/dist/vanilla-router.min.js"></script>
+      <script src="js/app.js"></script>
+    </div>
+  </body>
 </html>

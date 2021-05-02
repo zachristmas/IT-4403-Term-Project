@@ -3,8 +3,10 @@ window.addEventListener('load', () => {
 
   // Compile Handlebar Templates
   const errorTemplate = Handlebars.compile($('#error-template').html());
-  const ratesTemplate = Handlebars.compile($('#rates-template').html());
-  const exchangeTemplate = Handlebars.compile($('#exchange-template').html());
+  const popMoviesTemplate = Handlebars.compile($('#popMovies-template').html());
+  const searchTemplate = Handlebars.compile($('#search-template').html());
+  const resultTemplateHorizontal = Handlebars.compile($('#segment-horizontal').html());
+  const resultTemplateVertical = Handlebars.compile($('#segment-vertical').html());
   const historicalTemplate = Handlebars.compile($('#historical-template').html());
 
   // Instantiate api handler
@@ -35,14 +37,14 @@ window.addEventListener('load', () => {
   // Display Latest Currency Rates
   router.add('/', async () => {
     // Display loader first
-    let html = ratesTemplate();
+    let html = popMoviesTemplate();
     el.html(html);
     try {
-      // Load Currency Rates
-      const response = await api.get('/rates');
-      const { base, date, rates } = response.data;
-      // Display Rates Table
-      html = ratesTemplate({ base, date, rates });
+      // Load Popular Movies
+      const response = await api.get('/popular');
+      const { page, results } = response.data;
+      // Display Popular Movies Template
+      html = popMoviesTemplate({ page, results });
       el.html(html);
       $('.loading').removeClass('loading');
     } catch (error) {
@@ -50,18 +52,23 @@ window.addEventListener('load', () => {
     }
   });
 
-  // Perform POST request, calculate and display conversion results
-  const getConversionResults = async () => {
+  // Perform POST request
+  const getSearchResults = async () => {
     // Extract form data
-    const from = $('#from').val();
-    const to = $('#to').val();
-    const amount = $('#amount').val();
+    const query = $('#search').val();
+    const page = $('#page').val() ? $('#page').val() : 1;
     // Send post data to express(proxy) server
     try {
-      const response = await api.post('/convert', { from, to });
-      const { rate } = response.data;
-      const result = rate * amount;
-      $('#result').html(`${to} ${result}`);
+      const response = await api.get('/search', {
+        params: {
+          query: query,
+          page: page
+        }
+      });
+      // const { response } = response.data;
+      window.searchResults = response.data.results;
+      console.log(response);
+      displaySearchResult(window.searchResults);
     } catch (error) {
       showError(error);
     } finally {
@@ -69,43 +76,96 @@ window.addEventListener('load', () => {
     }
   };
 
+  const displaySearchResult = (searchResults) => {
+    let html = window.searchView == 'grid' ? resultTemplateHorizontal(groupSearchByThree(searchResults)) : resultTemplateVertical(searchResults);
+
+    $('#search-result').html(html)
+  }
+
+  const groupSearchByThree = (searchResults) => {
+    if (searchResults && searchResults.length > 0) {
+      const groupByThree = searchResults.reduce(function (result, value, index, array) {
+        if (index % 3 === 0)
+          result.push(array.slice(index, index + 3));
+        return result;
+      }, []);
+      console.log(groupByThree);
+      return groupByThree
+    }
+    else return []
+  }
+
   // Handle Convert Button Click Event
-  const convertRatesHandler = () => {
+  const searchHandler = () => {
     if ($('.ui.form').form('is valid')) {
       // hide error message
       $('.ui.error.message').hide();
       // Post to express server
       $('#result-segment').addClass('loading');
-      getConversionResults();
+      getSearchResults();
       // Prevent page from submitting to server
       return false;
     }
     return true;
   };
 
-  router.add('/exchange', async () => {
+  const listViewHandler = (e) => {
+    e.preventDefault();
+    window.searchView = 'list';
+    $('#list-view').addClass('active');
+    $('#grid-view').removeClass('active');
+    if (!window.searchResults || window.searchResults.length == 0) return
+    $('#search-result').empty();
+    let searchResultVertical = resultTemplateVertical(window.searchResults);
+    $('#search-result').html(searchResultVertical)
+  }
+
+  const gridViewHandler = (e) => {
+    e.preventDefault();
+    window.searchView = 'grid';
+    $('#grid-view').addClass('active');
+    $('#list-view').removeClass('active');
+    if (!window.searchResults || window.searchResults.length == 0) return
+    $('#search-result').empty();
+    let searchResultHorizontal = resultTemplateHorizontal(groupSearchByThree(window.searchResults));
+    $('#search-result').html(searchResultHorizontal)
+  }
+
+  router.add('/search', async () => {
     // Display loader first
-    let html = exchangeTemplate();
-    el.html(html);
-    try {
-      // Load Symbols
-      const response = await api.get('/symbols');
-      const { symbols } = response.data;
-      html = exchangeTemplate({ symbols });
+    if (window.searchResults && window.searchResults.length > 0) {
+      let html = searchTemplate();
       el.html(html);
+      displaySearchResult(window.searchResults);
       $('.loading').removeClass('loading');
-      // Specify Form Validation Rules
-      $('.ui.form').form({
-        fields: {
-          from: 'empty',
-          to: 'empty',
-          amount: 'decimal',
-        },
-      });
-      // Specify Submit Handler
-      $('.submit').click(convertRatesHandler);
-    } catch (error) {
-      showError(error);
+      $('#searchBtn').on('click', searchHandler);
+      $('#list-view').on('click', listViewHandler);
+      $('#grid-view').on('click', gridViewHandler);
+    }
+    else {
+      let html = searchTemplate();
+      window.searchView = 'grid';
+      el.html(html);
+      try {
+        // Load Search
+        const response = await api.get('/search');
+        const { symbols } = response.data;
+        html = searchTemplate({ symbols });
+        el.html(html);
+        $('.loading').removeClass('loading');
+        // Specify Form Validation Rules
+        $('.ui.form').form({
+          fields: {
+            search: 'empty'
+          },
+        });
+        // Specify Submit Handler
+        $('#searchBtn').on('click', searchHandler);
+        $('#list-view').on('click', listViewHandler);
+        $('#grid-view').on('click', gridViewHandler);
+      } catch (error) {
+        showError(error);
+      }
     }
   });
 
