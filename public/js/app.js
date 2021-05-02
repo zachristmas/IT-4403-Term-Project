@@ -160,6 +160,7 @@ window.addEventListener('load', () => {
           },
         });
         // Specify Submit Handler
+        $('#search').on('keydown', searchInputHandler);
         $('#searchBtn').on('click', searchHandler);
         $('#list-view').on('click', listViewHandler);
         $('#grid-view').on('click', gridViewHandler);
@@ -168,6 +169,15 @@ window.addEventListener('load', () => {
       }
     }
   });
+
+  function searchInputHandler(event) {
+    if (event.which == 13 || event.keyCode == 13) {
+      //code to execute here
+      searchHandler();
+      return false;
+    }
+    return true;
+  }
 
   const getHistoricalRates = async () => {
     const date = $('#date').val();
