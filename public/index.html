@@ -13,16 +13,14 @@
   </head>
 
   <body>
-    <div class="ui container">
+    <div class="ui container fluid">
       <!-- Navigation Menu -->
-      <div class="ui four item inverted orange menu">
-        <div class="header item">
-          <i class="money bill alternate outline icon"></i>
-          IT 4403 Term Project
+      <div class="ui inverted blue menu">
+        <div class="header item">Zachary Christmas IT 4403 Term Project</div>
+        <div class="right menu">
+          <a class="item" href="/"> Top Movies & Shows </a>
+          <a class="item" href="/search"> Movie Search </a>
         </div>
-        <a class="item" href="/"> Top Movies & Shows </a>
-        <a class="item" href="/search"> Movie Search </a>
-        <a class="item" href="/historical"> Historical Rates </a>
       </div>
       <!-- Error Template -->
       <script id="error-template" type="text/x-handlebars-template">
@@ -42,12 +40,12 @@
 
       <!-- Popular Movies Template -->
       <script id="popMovies-template" type="text/x-handlebars-template">
-        <h1 class="ui header centered">
+        <h1 class="ui header">
           Top Movies & Shows
         </h1>
         <hr />
         <div class="ui loading basic segment">
-          <table class="ui celled striped selectable inverted table">
+          <table class="ui sortable celled striped inverted table">
             <thead>
               <tr>
                 <th>
@@ -55,7 +53,7 @@
                     Movie Title
                   </strong>
                 </th>
-                <th>
+                <th class="sorted descending">
                   <strong>
                     Rating
                   </strong>
@@ -76,7 +74,7 @@
               {{#each results}}
                 <tr>
                   <td>
-                    {{original_title}}
+                    <a href="#" onclick="window.openModal('movie',{{{id}}})">{{title}}</a>
                   </td>
                   <td>
                     {{popularity}}
@@ -101,16 +99,21 @@
           <div class="column">
           <div class="ui card">
             <div class="content">
-              <div class="header">Cute Dog</div>
-              <div class="meta">2 days ago</div>
-              <div class="description">
-                <p>Cute dogs come in a variety of shapes and sizes. Some cute dogs are cute for their adorable faces, others for their tiny stature, and even others for their massive size.</p>
-                <p>Many people also have their own barometers for what makes a cute dog.</p>
+              <div class="header">
+                <a href="#" onclick="window.openModal('movie',{{{id}}})">{{title}}</a>
+              </div>
+              <div class="meta">Released: {{release_date}}</div>
+              <div class="description" >
+                <p style="height: 15em; overflow:hidden">{{overview}}</p>
               </div>
             </div>
             <div class="extra content">
+              <i class="star icon"></i>
+              {{vote_average}} Average Rating
+            </div>
+            <div class="extra content">
               <i class="check icon"></i>
-              121 Votes
+              {{vote_count}} Votes
             </div>
           </div>
         </div>
@@ -121,28 +124,58 @@
 
       <script id="segment-vertical" type="text/x-handlebars-template">
         <div class="ui segment">
+          <table class="ui sortable celled striped inverted table">
+            <thead>
+              <tr>
+                <th>
+                  <strong>
+                    Movie Title
+                  </strong>
+                </th>
+                <th class="sorted descending">
+                  <strong>
+                    Release Date
+                  </strong>
+                </th>
+                <th>
+                  <strong>
+                    Overview
+                  </strong>
+                </th>
+                <th>
+                  <strong>
+                    Vote Average
+                  </strong>
+                </th>
+                <th>
+                  <strong>
+                    Vote Count
+                  </strong>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
               {{#.}}
-              <div class="ui items">
-                <div class="item">
-                  <div class="image">
-                    <img src="/images/wireframe/image.png">
-                  </div>
-                  <div class="content">
-                    <a class="header">Header</a>
-                    <div class="meta">
-                      <span>Description</span>
-                    </div>
-                    <div class="description">
-                      <p></p>
-                    </div>
-                    <div class="extra">
-                      Additional Details
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <hr>
+                <tr>
+                  <td>
+                    <a href="#" onclick="window.openModal('movie',{{{id}}})">{{title}}</a>
+                  </td>
+                  <td>
+                    {{release_date}}
+                  </td>
+                  <td>
+                    {{overview}}
+                  </td>
+                  <td>
+                    {{vote_average}}
+                  </td>
+                  <td>
+                    {{vote_count}}
+                  </td>
+                </tr>
               {{/.}}
+            </tbody>
+          </table>
             </div>
       </script>
 
@@ -186,36 +219,77 @@
         </div>
       </script>
 
-      <script id="historical-template" type="text/x-handlebars-template">
-        <h1 class="ui header">
-          Historical Rates
-        </h1>
-        <hr />
-        <form class="ui form">
-          <div class="field">
-            <label>
-              Pick Date
-            </label>
-            <div class="ui calendar" id="calendar">
-              <div class="ui input left icon">
-                <i class="calendar icon"></i>
-                <input type="text" placeholder="Date" id="date" />
-              </div>
+      <script id="movie-modal-template" type="text/x-handlebars-template">
+        <div class="ui modal">
+          <i class="close icon"></i>
+          <div class="header">
+            {{title}}
+          </div>
+          <div class="image content">
+            <div class="image">
+              <img src="https://www.themoviedb.org/t/p/w220_and_h330_face/{{poster_path}}" />
+            </div>
+            <div class="description">
+              {{overview}}
             </div>
           </div>
-          <div class="ui primary submit button">
-            Fetch Rates
+          <div class="actions">
+            <div class="ui button" onclick="window.openModal('cast',{{{id}}})">View Cast</div>
+            <div class="ui button" onclick="window.closeModal()">Close</div>
           </div>
-          <div class="ui error message"></div>
-        </form>
+        </div>
+      </script>
 
-        <div class="ui basic segment">
-          <div id="historical-table"></div>
+      <script id="credit-modal-template" type="text/x-handlebars-template">
+        <div class="ui modal">
+          <i class="close icon"></i>
+          <div class="header">
+            Cast & Crew
+          </div>
+          <div class="content">
+            <div class="description">
+              <ul>
+              {{#each cast}}
+                <li><a href="#" onclick="window.openModal('castDetail',{{{id}}})">{{name}}</a></li>
+              {{/each}}
+              </ul>
+            </div>
+          </div>
+          <div class="actions">
+            <div class="ui button" onclick="window.openModal('movie',{{{id}}})">Back</div>
+            <div class="ui button" onclick="window.closeModal()">Close</div>
+          </div>
+        </div>
+      </script>
+
+      <script id="cast-detail-modal-template" type="text/x-handlebars-template">
+        <div class="ui modal">
+          <i class="close icon"></i>
+          <div class="header">
+            {{name}}
+          </div>
+          <div class="image content">
+            <div class="image">
+              <img src="https://www.themoviedb.org/t/p/w220_and_h330_face/{{profile_path}}" />
+            </div>
+            <div class="description">
+              <p>Biography: {{biography}}</p>
+              <p>Popularity: {{popularity}}</p>
+            </div>
+          </div>
+          <div class="actions">
+            <div class="ui button" onclick="window.openModal('cast',window.creditsId)">Back</div>
+            <div class="ui button" onclick="window.closeModal()">Close</div>
+          </div>
         </div>
       </script>
 
       <!-- Page content -->
-      <div id="app"></div>
+      <div class="ui container">
+        <div id="app"></div>
+      </div>
+
+      <div id="modal"></div>
 
       <!-- Scripts -->
       <script src="scripts/jquery/dist/jquery.min.js"></script>
@@ -224,6 +298,7 @@
       <script src="scripts/axios/dist/axios.min.js"></script>
       <script src="scripts/handlebars/dist/handlebars.min.js"></script>
       <script src="scripts/vanilla-router/dist/vanilla-router.min.js"></script>
+      <script src="js/tablesort.js"></script>
       <script src="js/app.js"></script>
     </div>
   </body>

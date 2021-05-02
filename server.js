@@ -1,8 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
-const { getPopular, getSearch, getHistoricalRate } = require('./lib/fixer-service');
-const { convertCurrency } = require('./lib/free-currency-service');
+const { getPopular, getSearch, getMovie, getCredits, getCastDetail } = require('./lib/fixer-service');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -60,11 +59,11 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-// Convert Currency
-app.post('/api/convert', async (req, res) => {
+// Fetch Movie
+app.get('/api/movie', async (req, res) => {
   try {
-    const { from, to } = req.body;
-    const data = await convertCurrency(from, to);
+    let movieId = req.query.id;
+    const data = await getMovie(movieId);
     res.setHeader('Content-Type', 'application/json');
     res.send(data);
   } catch (error) {
@@ -72,11 +71,23 @@ app.post('/api/convert', async (req, res) => {
   }
 });
 
-// Fetch Currency Rates by date
-app.post('/api/historical', async (req, res) => {
+// Fetch Cast
+app.get('/api/credits', async (req, res) => {
   try {
-    const { date } = req.body;
-    const data = await getHistoricalRate(date);
+    let movieId = req.query.id;
+    const data = await getCredits(movieId);
+    res.setHeader('Content-Type', 'application/json');
+    res.send(data);
+  } catch (error) {
+    errorHandler(error, req, res);
+  }
+});
+
+// Fetch Cast Detail
+app.get('/api/castDetail', async (req, res) => {
+  try {
+    let personId = req.query.id;
+    const data = await getCastDetail(personId);
     res.setHeader('Content-Type', 'application/json');
     res.send(data);
   } catch (error) {

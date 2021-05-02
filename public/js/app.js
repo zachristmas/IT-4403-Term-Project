@@ -1,13 +1,15 @@
 window.addEventListener('load', () => {
   const el = $('#app');
-
+  $('table').tablesort();
   // Compile Handlebar Templates
   const errorTemplate = Handlebars.compile($('#error-template').html());
   const popMoviesTemplate = Handlebars.compile($('#popMovies-template').html());
   const searchTemplate = Handlebars.compile($('#search-template').html());
   const resultTemplateHorizontal = Handlebars.compile($('#segment-horizontal').html());
   const resultTemplateVertical = Handlebars.compile($('#segment-vertical').html());
-  const historicalTemplate = Handlebars.compile($('#historical-template').html());
+  const movieModalTemplate = Handlebars.compile($('#movie-modal-template').html())
+  const creditModalTemplate = Handlebars.compile($('#credit-modal-template').html())
+  const castDetailModalTemplate = Handlebars.compile($('#cast-detail-modal-template').html())
 
   // Instantiate api handler
   const api = axios.create({
@@ -34,7 +36,7 @@ window.addEventListener('load', () => {
     el.html(html);
   };
 
-  // Display Latest Currency Rates
+  // Display Popular Movies
   router.add('/', async () => {
     // Display loader first
     let html = popMoviesTemplate();
@@ -47,6 +49,7 @@ window.addEventListener('load', () => {
       html = popMoviesTemplate({ page, results });
       el.html(html);
       $('.loading').removeClass('loading');
+      $('table').tablesort();
     } catch (error) {
       showError(error);
     }
@@ -67,7 +70,7 @@ window.addEventListener('load', () => {
       });
       // const { response } = response.data;
       window.searchResults = response.data.results;
-      console.log(response);
+      //console.log(response);
       displaySearchResult(window.searchResults);
     } catch (error) {
       showError(error);
@@ -80,6 +83,7 @@ window.addEventListener('load', () => {
     let html = window.searchView == 'grid' ? resultTemplateHorizontal(groupSearchByThree(searchResults)) : resultTemplateVertical(searchResults);
 
     $('#search-result').html(html)
+    $('table').tablesort();
   }
 
   const groupSearchByThree = (searchResults) => {
@@ -89,7 +93,7 @@ window.addEventListener('load', () => {
           result.push(array.slice(index, index + 3));
         return result;
       }, []);
-      console.log(groupByThree);
+      //console.log(groupByThree);
       return groupByThree
     }
     else return []
@@ -118,6 +122,7 @@ window.addEventListener('load', () => {
     $('#search-result').empty();
     let searchResultVertical = resultTemplateVertical(window.searchResults);
     $('#search-result').html(searchResultVertical)
+    $('table').tablesort();
   }
 
   const gridViewHandler = (e) => {
@@ -129,6 +134,7 @@ window.addEventListener('load', () => {
     $('#search-result').empty();
     let searchResultHorizontal = resultTemplateHorizontal(groupSearchByThree(window.searchResults));
     $('#search-result').html(searchResultHorizontal)
+    $('table').tablesort();
   }
 
   router.add('/search', async () => {
@@ -137,6 +143,7 @@ window.addEventListener('load', () => {
       let html = searchTemplate();
       el.html(html);
       displaySearchResult(window.searchResults);
+      $('table').tablesort();
       $('.loading').removeClass('loading');
       $('#searchBtn').on('click', searchHandler);
       $('#list-view').on('click', listViewHandler);
@@ -179,50 +186,106 @@ window.addEventListener('load', () => {
     return true;
   }
 
-  const getHistoricalRates = async () => {
-    const date = $('#date').val();
+  async function openModal(modalType, id) {
+    switch (modalType) {
+      case 'movie':
+        await handleMovieModal(id)
+        break;
+      
+      case 'cast':
+        await handleCreditsModal(id)
+        break;
+
+      case 'castDetail':
+        await handleCastDetailModal(id)
+        break;
+      default:
+        break;
+    }
+    
+  }
+
+  async function handleMovieModal(movieId) {
     try {
-      const response = await api.post('/historical', { date });
-      const { base, rates } = response.data;
-      const html = ratesTemplate({ base, date, rates });
-      $('#historical-table').html(html);
+      const response = await api.get('/movie', {
+        params: {
+          id: movieId
+        }
+      });
+
+      const data = response.data;
+      //console.log(response);
+      $('.ui.modal').remove();
+      let html = movieModalTemplate(data);
+      $('#modal').html(html);
+      $('.ui.modal').modal({
+        onHide: function (e) {
+          $('.ui.modal').empty();
+          $('#modal').empty();
+        }
+      }).modal('show');
     } catch (error) {
       showError(error);
     } finally {
-      $('.segment').removeClass('loading');
     }
-  };
+  }
 
-  const historicalRatesHandler = () => {
-    if ($('.ui.form').form('is valid')) {
-      // hide error message
-      $('.ui.error.message').hide();
-      // Indicate loading status
-      $('.segment').addClass('loading');
-      getHistoricalRates();
-      // Prevent page from submitting to server
-      return false;
+  async function handleCreditsModal(movieId) {
+    try {
+      const response = await api.get('/credits', {
+        params: {
+          id: movieId
+        }
+      });
+      window.creditsId = movieId;
+      const data = response.data;
+      //console.log(response);
+      $('.ui.modal').remove();
+      let html = creditModalTemplate(data);
+      $('#modal').html(html);
+      $('.ui.modal').modal({
+        onHide: function (e) {
+          $('.ui.modal').empty();
+          $('#modal').empty();
+        }
+      }).modal('show');
+    } catch (error) {
+      showError(error);
+    } finally {
     }
-    return true;
-  };
+  }
 
-  router.add('/historical', () => {
-    const html = historicalTemplate();
-    el.html(html);
-    // Activate Date Picker
-    $('#calendar').calendar({
-      type: 'date',
-      formatter: {
-        date: date => new Date(date).toISOString().split('T')[0],
-      },
-    });
-    $('.ui.form').form({
-      fields: {
-        date: 'empty',
-      },
-    });
-    $('.submit').click(historicalRatesHandler);
-  });
+  async function handleCastDetailModal(personId) {
+    try {
+      const response = await api.get('/castDetail', {
+        params: {
+          id: personId
+        }
+      });
+
+      const data = response.data;
+      //console.log(response);
+      $('.ui.modal').remove();
+      let html = castDetailModalTemplate(data);
+      $('#modal').html(html);
+      $('.ui.modal').modal({
+        onHide: function (e) {
+          $('.ui.modal').empty();
+          $('#modal').empty();
+        }
+      }).modal('show');
+    } catch (error) {
+      showError(error);
+    } finally {
+    }
+  }
+
+  function closeModal() {
+    $('.ui.modal').modal('hide');
+  }
+
+  window.openModal = openModal;
+  window.closeModal = closeModal;
 
   router.navigateTo(window.location.pathname);
 
